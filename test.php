@@ -60,27 +60,6 @@ function draw_rect($list, $pdf) {
     $list[3], $type);
 }
 
-function write_text($list, $pdf) {
-    print_r($list);
-    // $color = process_color($list[2]);
-    $color = process_color($list[4]);
-
-    // print_r($color);
-    $pdf->SetTextColor($color[0], $color[1], $color[2]);
-    // $pdf->SetFontSize($list[4]);
-    // $pdf->SetFontSize($list[6]);
-
-    $pdf->SetFontSize(12);
-    // $pdf->rect($list[0], $list[1], $list[2], $list[3]);
-    // $pdf->text($list[0],
-    // $list[1],
-    // $list[3]);
-
-    $pdf->text($list[0],
-    $list[1] + $list[3],
-    $list[5]);
-}
-
 function draw($obj_array, $pdf) {
     for($j = 0; $j < sizeof($obj_array['path']); $j++) {
         $list = $obj_array['path'][$j];
@@ -91,10 +70,5 @@ function draw($obj_array, $pdf) {
         $list = $obj_array['rect'][$j];
         draw_rect($list, $pdf);
     } 
-
-    for($j = 0; $j < sizeof($obj_array['text']); $j++) {
-        $list = $obj_array['text'][$j];
-        write_text($list, $pdf);
-    }
 }
 ?>

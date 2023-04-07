@@ -1,8 +1,9 @@
 <?php
+// require_once('test.php')
 define("RATIO", 0.238);
 
 function parser() {
-    $obj_array = ['rect'=> array(), 'path' => array(), 'text' => array(), 'image' => array()];
+    $obj_array = ['rect'=> array(), 'path' => array()];
     // $info_array = array();
     $orientation = "";
     $myfile = getting_json();
@@ -26,10 +27,6 @@ function parser() {
                 array_push($obj_array['rect'], parser_rect($myfile));
             else if (strpos($line, "path") !== false)
                 array_push($obj_array['path'], parser_path($myfile));
-            else if (strpos($line, "i-text") !== false)
-                array_push($obj_array['text'], parser_text($myfile));
-            else if (strpos($line, "image") !== false)
-                array_push($obj_array['image'], parser_image($myfile));
         }
     }
     
@@ -38,17 +35,17 @@ function parser() {
     return [$orientation, $obj_array];
 }
 
-$myfile = getting_json();
-parser_rect($myfile);
+// $myfile = getting_json();
+// parser_rect($myfile);
 // print_r (parser_path($myfile));
 // print_r (parser());
 // parser();
 
 function getting_json() {  
-    return fopen("../values", "r");
+    return fopen("values.txt", "r");
 }
 
-function string_to_float($str, $start) {
+function string_to_int($str, $start) {
     if (strpos($str, ",") !== false)
         return RATIO * (double)substr($str, $start, -1);
     return RATIO * (double)substr($str, $start);
@@ -75,13 +72,13 @@ function parser_rect($myfile) {
         else if (strpos($line, "stroke") !== false)
             $val = substr($line, 11, -3);
         else if(strpos($line, "\"left\":") !== false) 
-            $val = string_to_float($line, 8);
+            $val = string_to_int($line, 8);
         else  if (strpos($line, "\"top\":") !== false)
-            $val = string_to_float($line, 7);
+            $val = string_to_int($line, 7);
         else  if (strpos($line, "\"width\":") !== false)
-            $val = string_to_float($line, 9);
+            $val = string_to_int($line, 9);
         else  if (strpos($line, "\"height\":") !== false)
-            $val = string_to_float($line, 10);
+            $val = string_to_int($line, 10);
         else continue;
 
         array_push($list, $val);
@@ -90,73 +87,6 @@ function parser_rect($myfile) {
     return $list;
 }
 
-function parser_image($myfile) {
-    $list = array();
-
-    while(!feof($myfile)) {
-        $line = trim(fgets($myfile), ' ');
-        $val = 0;
-        
-        if (strpos($line, "filters") !== false)
-            break;
-        else if(strpos($line, "\"left\":") !== false) 
-            $val = string_to_float($line, 8);
-        else  if (strpos($line, "\"top\":") !== false)
-            $val = string_to_float($line, 7);
-        else  if (strpos($line, "\"width\":") !== false)
-            $val = string_to_float($line, 9);
-        else  if (strpos($line, "\"height\":") !== false)
-            $val = string_to_float($line, 10);
-        else  if (strpos($line, "\"src\":") !== false) {
-            $val = substr($line, 8, -3); 
-            $type = substr($val, 11, 4);
-            $type = strtoupper(trim($type, ';'));
-            array_push($list, $type);
-        }
-        else continue;
-
-        array_push($list, $val);
-    }
-
-    return $list;
-}
-
-function parser_text($myfile) {
-    $list = array();
-
-    while(!feof($myfile)) {
-        $line = trim(fgets($myfile), ' ');
-        $val = 0;
-        
-        if (strpos($line, "lineHeight") !== false)
-            break;
-        else if (strpos($line, "\"fill\":") !== false)
-            $val = substr($line, 9, -3); 
-        else if (strpos($line, "fontSize") !== false)
-            // $val = string_to_float($line, 12);
-            $val = (double)substr($line, 12, -1);
-            // echo $val;}
-        // else if (strpos($line, "stroke") !== false)
-        //     $val = substr($line, 11, -3);
-        // "fontSize": 16,
-        else if(strpos($line, "\"left\":") !== false) 
-            $val = string_to_float($line, 8);
-        else  if (strpos($line, "\"top\":") !== false)
-            $val = string_to_float($line, 7);
-        else  if (strpos($line, "\"width\":") !== false)
-            $val = string_to_float($line, 9);
-        else  if (strpos($line, "\"height\":") !== false)
-            $val = string_to_float($line, 10);
-        else  if (strpos($line, "\"text\":") !== false)    
-            $val = substr($line, 9, -3);
-            // echo $val;
-        else continue;
-
-        array_push($list, $val);
-    }
-
-    return $list;
-}
 
 function parser_path($myfile) {
     $list = array();
@@ -169,7 +99,7 @@ function parser_path($myfile) {
         $line = fgets($myfile);
         // echo $line;
         if ($endpoint >= 1) {
-            $num = string_to_float($line, 0);
+            $num = string_to_int($line, 0);
             array_push($temp, $num);
             if ($endpoint == 2) { 
                 array_push($list, $temp);
@@ -195,7 +125,7 @@ function parser_path($myfile) {
         }
 
         if ($flag >= 9 && $flag <= 12) {
-            $num = string_to_float($line, 0);
+            $num = string_to_int($line, 0);
             $flag++;
             array_push($temp, $num);
             if (sizeof($temp) == 2) {
@@ -234,4 +164,5 @@ function process_color($str) {
     }
     return $val;
 }
+
 ?>
