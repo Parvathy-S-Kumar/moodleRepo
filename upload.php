@@ -32,17 +32,15 @@ $filearea = 'response_attachments';
 $filepath = '/';
 $itemid = $attemptid;
 
-// $fs = get_file_storage();
-// // Prepare file record object
-// $fileinfo = array(
-//     'contextid' => $contextid,
-//     'component' => $component,
-//     'filearea' => $filearea,
-//     'itemid' => $itemid,
-//     'filepath' => $filepath,
-//     'filename' => $filename);
-
-echo $contextid;
+$fs = get_file_storage();
+// Prepare file record object
+$fileinfo = array(
+    'contextid' => $contextid,
+    'component' => $component,
+    'filearea' => $filearea,
+    'itemid' => $itemid,
+    'filepath' => $filepath,
+    'filename' => $filename);
 
 //Created a new file with the annotation data
 $fn = "values.txt"; // name the file
@@ -50,68 +48,61 @@ $fi = fopen("./" .$fn, 'w'); // open the file path
 fwrite($fi, $value); //save data
 fclose($fi);
 
-// for($i=1;$i<=$pagecount;$i++) { 
-//     $tpl = $pdf->importPage($i); 
-//     $size = $pdf->getTemplateSize($tpl); 
-//     $pdf->addPage(); 
-//     $pdf->useTemplate($tpl, 1, 1, $size['width'], $size['height'], FALSE); 
-//     draw($obj_array, $pdf);
-// } 
+$values = file_get_contents("values.txt");
 
+$json = json_decode($values,true);
 
-function debug_to_console($data) {
-    $output = $data;
-    if (is_array($output))
-        $output = implode(',', $output);
+$fn = "json.txt"; // name the file
+$fi = fopen("./" .$fn, 'w'); // open the file path
+fwrite($fi, $json); //save data
+fclose($fi);
+echo $json;
 
-    echo "<script>console.log('Debug Objects: " . $output . "' );</script>";
-}
-$myfile=fopen("values.txt", "r");
+$orientation=$json["page_setup"]['orientation'];
+$orientation=($orientation=="portrait")? 'p' : 'l';
 
-// // $myfile = getting_json();
-// // parser_rect($myfile);
-$final_array = parser();
-$obj_array = $final_array[1];
-$info_array = $final_array[0];
-$orientation = $info_array[0];
-// $orientation = $final_array[0];
-
-$file =  'dummy.pdf'; 
-$pdf = new fpdi('l'); 
-
+$file = 'dummy.pdf'; 
+$pdf = new Fpdi($orientation); 
 if(file_exists("./".$file))
     $pagecount = $pdf->setSourceFile($file); 
 else
     die('\nSource PDF not found!'); 
- 
-for($i=1;$i<=$pagecount;$i++) { 
+
+
+
+// echo count($json["pages"][0][0]["objects"]);
+// echo count($json["pages"]);
+for($i=1 ; $i <= $pagecount; $i++)
+{
     $tpl = $pdf->importPage($i); 
     $size = $pdf->getTemplateSize($tpl); 
     $pdf->addPage(); 
     $pdf->useTemplate($tpl, 1, 1, $size['width'], $size['height'], FALSE); 
-    draw($obj_array, $pdf);
-} 
+    // echo (count($json["pages"][$i-1]));
+    if(count($json["pages"][$i-1]) ==0)
+        continue;
+    $objnum=count($json["pages"][$i-1][0]["objects"]);
+    for($j=0;$j<$objnum;$j++)
+    {
+        $arr = $json["pages"][$i-1][0]["objects"][$j];
+        if($arr["type"]=="path")
+        {
+           draw_path($arr,$pdf);
+        }
+        else if($arr["type"]=="i-text")
+        {
+            insert_text($arr,$pdf);
+        }
+    }
+    // $tpl = $pdf->importPage($i); 
+    // $size = $pdf->getTemplateSize($tpl); 
+    // $pdf->addPage(); 
+    // $pdf->useTemplate($tpl, 1, 1, $size['width'], $size['height'], FALSE); 
+    // draw($obj_array, $pdf);
+}
 
-// create_pdf();
+
 $pdf->Output('F','outputmoodle.pdf');
-
-//Using FPDF-FPDI functions to annotate the PDF
-// $file = $filename;
-// $pdf = new Fpdi('l'); 
-// $pagecount = $pdf->setSourceFile($file);
-// draw($pdf,$pagecount);
-
-// // for($i=1;$i<=$pagecount;$i++) { 
-// //     $tpl = $pdf->importPage($i); 
-// //     $size = $pdf->getTemplateSize($tpl); 
-// //     $pdf->addPage(); 
-// //     $pdf->useTemplate($tpl, 1, 1, $size['width'], $size['height'], FALSE); 
-// //     $pdf->rect(50, 
-// //     50, 
-// //     100, 
-// //     100);
-// // } 
-// $pdf->Output('F','outputmoodle.pdf');
 
 $fname='outputmoodle.pdf';
 $temppath = './' . $fname;

@@ -258,14 +258,15 @@ function download(filename, text) {
 	  xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	  xmlhttp.onreadystatechange = function() {
 
-		if (this.readyState == 4 && this.status == 200) {
+		if (this.readyState == 4 && this.status == 404) {
 			// alert("file has been saved");
 			console.log(this.responseText);
 		}
-		// }else{
-			console.log(this.readyState, this.status);
-		// 	alert("not able to save file");
 		// }
+		else{
+			console.log(this.readyState, this.status);
+			alert("not able to save file");
+		}
 
 	  };
 
@@ -453,15 +454,47 @@ function download(filename, text) {
 
 
 
+// PDFAnnotate.prototype.serializePdf = function (callback) {
+// 	var inst = this;
+// 	var pageAnnotations = [];
+// 	inst.fabricObjects.forEach(function (fabricObject) {
+// 	  fabricObject.clone(function (fabricObjectCopy) {
+// 		fabricObjectCopy.setBackgroundImage(null);
+// 		fabricObjectCopy.setBackgroundColor('');
+// 		pageAnnotations.push(fabricObjectCopy);
+// 		if (pageAnnotations.length === inst.fabricObjects.length) {
+// 		  var data = {
+// 			page_setup: {
+// 			  format: inst.format,
+// 			  orientation: inst.orientation,
+// 			},
+// 			pages: pageAnnotations,
+// 		  };
+// 		  callback(JSON.stringify(data));
+// 		}
+// 	  });
+// 	});
+//   };
+
+
 PDFAnnotate.prototype.serializePdf = function (callback) {
 	var inst = this;
-	var pageAnnotations = [];
-	inst.fabricObjects.forEach(function (fabricObject) {
+	var pageAnnotations=[];
+	for (let i = 0; i < this.fabricObjects.length; i++) {
+	  pageAnnotations.push([]);
+	}
+	inst.fabricObjects.forEach(function (fabricObject,index) {
 	  fabricObject.clone(function (fabricObjectCopy) {
+		// console.log(index);
 		fabricObjectCopy.setBackgroundImage(null);
 		fabricObjectCopy.setBackgroundColor('');
-		pageAnnotations.push(fabricObjectCopy);
-		if (pageAnnotations.length === inst.fabricObjects.length) {
+		if(fabricObjectCopy._objects.length !== 0)
+		{
+		//   console.log(fabricObjectCopy._objects.length);
+		pageAnnotations[index].push(fabricObjectCopy);
+		}
+		if (index+1 === inst.fabricObjects.length) {
+		//   console.log("Hello");
 		  var data = {
 			page_setup: {
 			  format: inst.format,
@@ -470,9 +503,23 @@ PDFAnnotate.prototype.serializePdf = function (callback) {
 			pages: pageAnnotations,
 		  };
 		  callback(JSON.stringify(data));
+		  // var value = JSON.stringify((data), null, 4);
+		  // download("values3", value);
 		}
 	  });
 	});
+	var data = {
+	  page_setup: {
+		format: inst.format,
+		orientation: inst.orientation,
+	  },
+	  pages: pageAnnotations,
+	};
+	// console.log(pageAnnotations);
+	// var k=callback(JSON.stringify(data))
+	// // var value = JSON.stringify((data), null, 4);
+	// download("values3", k);
+	
   };
 
 PDFAnnotate.prototype.setColor = function (color) {
