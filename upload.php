@@ -61,17 +61,31 @@ echo $json;
 $orientation=$json["page_setup"]['orientation'];
 $orientation=($orientation=="portrait")? 'p' : 'l';
 
+
 $file = 'dummy.pdf'; 
+$filepdf = fopen($file,"r");
+if ($filepdf) 
+{
+    $line_first = fgets($filepdf);
+    preg_match_all('!\d+!', $line_first, $matches);	
+    // save that number in a variable
+    $pdfversion = implode('.', $matches[0]);
+    if($pdfversion > "1.4")
+    {
+        $srcfile_new="newdummy.pdf";
+        $srcfile=$file;
+        shell_exec('gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dNOPAUSE \
+        -dBATCH -sOutputFile="'.$srcfile_new.'" "'.$srcfile.'"'); 
+        $file=$srcfile_new;
+    }
+fclose($filepdf);
+}
 $pdf = new Fpdi($orientation); 
 if(file_exists("./".$file))
     $pagecount = $pdf->setSourceFile($file); 
 else
     die('\nSource PDF not found!'); 
 
-
-
-// echo count($json["pages"][0][0]["objects"]);
-// echo count($json["pages"]);
 for($i=1 ; $i <= $pagecount; $i++)
 {
     $tpl = $pdf->importPage($i); 
@@ -94,11 +108,6 @@ for($i=1 ; $i <= $pagecount; $i++)
             insert_text($arr,$pdf);
         }
     }
-    // $tpl = $pdf->importPage($i); 
-    // $size = $pdf->getTemplateSize($tpl); 
-    // $pdf->addPage(); 
-    // $pdf->useTemplate($tpl, 1, 1, $size['width'], $size['height'], FALSE); 
-    // draw($obj_array, $pdf);
 }
 
 

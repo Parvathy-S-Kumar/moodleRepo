@@ -22,6 +22,8 @@ var PDFAnnotate = function(container_id, url, options = {}) {
 	this.pageImageCompression = options.pageImageCompression
     ? options.pageImageCompression.toUpperCase()
     : "NONE";
+	this.format;
+	this.orientation;
 	var inst = this;
 
 	var loadingTask = pdfjsLib.getDocument(this.url);
@@ -31,6 +33,16 @@ var PDFAnnotate = function(container_id, url, options = {}) {
 
 	    for (var i = 1; i <= pdf.numPages; i++) {
 	        pdf.getPage(i).then(function (page) {
+
+				if (typeof inst.format === 'undefined' ||
+				typeof inst.orientation === 'undefined') {
+				var originalViewport = page.getViewport({ scale: 1 });
+				inst.format = [originalViewport.width, originalViewport.height];
+				inst.orientation =
+				  originalViewport.width > originalViewport.height ?
+					'landscape' :
+					'portrait';
+			  }
 	            var viewport = page.getViewport({scale: scale});
 	            var canvas = document.createElement('canvas');
 	            document.getElementById(inst.container_id).appendChild(canvas);
@@ -211,42 +223,6 @@ function download(filename, text) {
 	document.body.removeChild(element);
   }
 
-
-//   PDFAnnotate.prototype.savePdf = function (fileName) {
-//     pdf.serializePdf(function (string) {
-//       var value = JSON.stringify(JSON.parse(string), null, 4);
-// 	  var xhr = new XMLHttpRequest();
-// 			xhr.onload = function() {
-// 				if (this.readyState == 4 && this.status == 200) {
-// 					console.log(this.responseText);
-// 				}else{
-// 					console.log(this.readyState, this.status);
-// 					alert("not able to save file");
-// 				}
-// 			}
-// 	  params = 'contextid='+contextid + '&attemptid='+attemptid + '&filename='+filename;
-// 			xhr.open( 'post', 'upload.php?'+params, true ); //Post to php Script to save to server
-// 			xhr.send("id=" + value);
-
-	  
-
-//     //   download("values3", value);
-//     });
-// };
-
-
-// function downloada(url, filename) {
-// 	fetch(url).then(function(t) {
-// 		return t.blob().then((b)=>{
-// 			var a = document.createElement("a");
-// 			a.href = URL.createObjectURL(b);
-// 			a.setAttribute("download", filename);
-// 			a.click();
-// 		}
-// 		);
-// 	});
-// 	}
-
   PDFAnnotate.prototype.savePdf = function (fileName) {
     pdf.serializePdf(function (string) {
       var value = JSON.stringify(JSON.parse(string), null, 4);
@@ -284,199 +260,6 @@ function download(filename, text) {
 };
 
 
-
-// PDFAnnotate.prototype.savePdf = function (fileName) {
-// 	var inst = this;
-// 	var doc = new jspdf.jsPDF();
-// 	if (typeof fileName === 'undefined') {
-// 		fileName = `${new Date().getTime()}.pdf`;
-// 	}
-// 	// console.log(inst.fabricObjects);
-// 	console.log("Check Hello");
-// 	inst.fabricObjects.forEach(function (fabricObj, index) {
-// 		if (index != 0) {
-// 			doc.addPage();
-// 			doc.setPage(index + 1);
-// 		}
-// 		doc.addImage(
-// 			fabricObj.toDataURL({
-// 				format: 'png'
-// 			}), 
-// 			inst.pageImageCompression == "NONE" ? "PNG" : "JPEG", 
-// 			0, 
-// 			0,
-// 			doc.internal.pageSize.getWidth(), 
-// 			doc.internal.pageSize.getHeight(),
-// 			`page-${index + 1}`, 
-// 			["FAST", "MEDIUM", "SLOW"].indexOf(inst.pageImageCompression) >= 0
-// 			? inst.pageImageCompression
-// 			: undefined
-// 		);
-// 		if (index === inst.fabricObjects.length - 1) {
-// 			// Tausif Iqbal, Vishal Rao works start here...
-// 			// this asks for the local file location and downloads file there. But we don't want this to happen.
-// 			// doc.save(fileName);
-// 			var pdf = doc.output('blob');
-
-// 			// now we'll create a form which will have the pdf data
-// 			var data = new FormData();
-// 			data.append("data", pdf); // add data to the form
-// 			console.log("PDF");
-
-
-// 			// now we'll create a HTTP request to send the data
-// 			var xhr = new XMLHttpRequest();
-// 			xhr.onload = function() {
-// 				if (this.readyState == 4 && this.status == 200) {
-// 					alert("file has been saved");
-// 				}else{
-// 					console.log(this.readyState, this.status);
-// 					alert("not able to save file");
-// 				}
-// 			}
-// 			// a way to pass required parameters to the server
-// 			params = 'contextid='+contextid + '&attemptid='+attemptid + '&filename='+filename;
-// 			xhr.open( 'post', 'upload.php?'+params, true ); //Post to php Script to save to server
-// 			console.log(data);
-// 			xhr.send(data);
-// 			// Tausif Iqbal, Vishal Rao works end here...
-// 		}
-
-// 	})
-// 	return false;   // changes made
-// }
-
-
-
-
-
-/*********************************Rewriting Save function ***********************************/
-
-
-// PDFAnnotate.prototype.savePdf = function (fileName) {
-// 	var inst = this;
-// 	if (typeof fileName === 'undefined') {
-// 		fileName = `${new Date().getTime()}.pdf`;
-// 	}
-// 	console.log(inst.fabricObjects);
-// 	console.log("Check Hello");
-// 	inst.fabricObjects.forEach(function (fabricObj, index) {
-// 		if (index === inst.fabricObjects.length - 1) {
-// 			// Tausif Iqbal, Vishal Rao works start here...
-// 			// this asks for the local file location and downloads file there. But we don't want this to happen.
-
-// 			// now we'll create a form which will have the pdf data
-// 			var data = new FormData();
-// 			data.append("data", pdf); // add data to the form
-
-// 			// now we'll create a HTTP request to send the data
-// 			var xhr = new XMLHttpRequest();
-// 			xhr.onload = function() {
-// 				if (this.readyState == 4 && this.status == 200) {
-// 					alert("file has been saved");
-// 				}else{
-// 					console.log(this.readyState, this.status);
-// 					alert("not able to save file");
-// 				}
-// 			}
-// 			// a way to pass required parameters to the server
-// 			params = 'contextid='+contextid + '&attemptid='+attemptid + '&filename='+filename;
-// 			xhr.open( 'post', 'upload.php?'+params, true ); //Post to php Script to save to server
-// 			xhr.send(data);
-// 			// Tausif Iqbal, Vishal Rao works end here...
-// 		}
-
-// 	})
-// 	return false;   // changes made
-// }
-
-
-
-// PDFAnnotate.prototype.savePdf = function (fileName) {
-// 	var inst = this;
-// 	var doc = new jspdf.jsPDF();
-// 	if (typeof fileName === 'undefined') {
-// 		fileName = `${new Date().getTime()}.pdf`;
-// 	}
-// 	console.log(inst.fabricObjects);
-// 	console.log("Check Hello");
-// 	inst.fabricObjects.forEach(function (fabricObj, index) {
-// 		if (index != 0) {
-// 			doc.addPage();
-// 			doc.setPage(index + 1);
-// 		}
-// 		doc.addImage(
-// 			fabricObj.toDataURL({
-// 				format: 'png'
-// 			}), 
-// 			inst.pageImageCompression == "NONE" ? "PNG" : "JPEG", 
-// 			0, 
-// 			0,
-// 			doc.internal.pageSize.getWidth(), 
-// 			doc.internal.pageSize.getHeight(),
-// 			`page-${index + 1}`, 
-// 			["FAST", "MEDIUM", "SLOW"].indexOf(inst.pageImageCompression) >= 0
-// 			? inst.pageImageCompression
-// 			: undefined
-// 		);
-// 		if (index === inst.fabricObjects.length - 1) {
-// 			// Tausif Iqbal, Vishal Rao works start here...
-// 			// this asks for the local file location and downloads file there. But we don't want this to happen.
-// 			// doc.save(fileName);
-// 			var pdf = doc.output('blob');
-
-// 			// now we'll create a form which will have the pdf data
-// 			var data = new FormData();
-// 			data.append("data", pdf); // add data to the form
-
-// 			// now we'll create a HTTP request to send the data
-// 			var xhr = new XMLHttpRequest();
-// 			xhr.onload = function() {
-// 				if (this.readyState == 4 && this.status == 200) {
-// 					alert("file has been saved");
-// 				}else{
-// 					console.log(this.readyState, this.status);
-// 					alert("not able to save file");
-// 				}
-// 			}
-// 			// a way to pass required parameters to the server
-// 			params = 'contextid='+contextid + '&attemptid='+attemptid + '&filename='+filename;
-// 			xhr.open( 'post', 'upload.php?'+params, true ); //Post to php Script to save to server
-// 			xhr.send(data);
-// 			// Tausif Iqbal, Vishal Rao works end here...
-// 		}
-
-// 	})
-// 	return false;   // changes made
-// }
-
-
-
-
-
-// PDFAnnotate.prototype.serializePdf = function (callback) {
-// 	var inst = this;
-// 	var pageAnnotations = [];
-// 	inst.fabricObjects.forEach(function (fabricObject) {
-// 	  fabricObject.clone(function (fabricObjectCopy) {
-// 		fabricObjectCopy.setBackgroundImage(null);
-// 		fabricObjectCopy.setBackgroundColor('');
-// 		pageAnnotations.push(fabricObjectCopy);
-// 		if (pageAnnotations.length === inst.fabricObjects.length) {
-// 		  var data = {
-// 			page_setup: {
-// 			  format: inst.format,
-// 			  orientation: inst.orientation,
-// 			},
-// 			pages: pageAnnotations,
-// 		  };
-// 		  callback(JSON.stringify(data));
-// 		}
-// 	  });
-// 	});
-//   };
-
-
 PDFAnnotate.prototype.serializePdf = function (callback) {
 	var inst = this;
 	var pageAnnotations=[];
@@ -494,7 +277,8 @@ PDFAnnotate.prototype.serializePdf = function (callback) {
 		pageAnnotations[index].push(fabricObjectCopy);
 		}
 		if (index+1 === inst.fabricObjects.length) {
-		//   console.log("Hello");
+		  console.log("Hello");
+		console.log(inst.orientation);
 		  var data = {
 			page_setup: {
 			  format: inst.format,
