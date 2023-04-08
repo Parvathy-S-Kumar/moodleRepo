@@ -13,6 +13,7 @@ require_once('../../config.php');
 require_once('locallib.php');
 require __DIR__ . '/test.php';
 require __DIR__ . '/parser.php';
+require __DIR__ . '/alphapdf.php';
 // require_once('parser.php');
 // require_once('test.php')
 include 'fpdi-fpdf/vendor/autoload.php';
@@ -52,12 +53,6 @@ $values = file_get_contents("values.txt");
 
 $json = json_decode($values,true);
 
-$fn = "json.txt"; // name the file
-$fi = fopen("./" .$fn, 'w'); // open the file path
-fwrite($fi, $json); //save data
-fclose($fi);
-echo $json;
-
 $orientation=$json["page_setup"]['orientation'];
 $orientation=($orientation=="portrait")? 'p' : 'l';
 
@@ -80,7 +75,7 @@ if ($filepdf)
     }
 fclose($filepdf);
 }
-$pdf = new Fpdi($orientation); 
+$pdf = new AlphaPDF($orientation); 
 if(file_exists("./".$file))
     $pagecount = $pdf->setSourceFile($file); 
 else
@@ -106,6 +101,11 @@ for($i=1 ; $i <= $pagecount; $i++)
         else if($arr["type"]=="i-text")
         {
             insert_text($arr,$pdf);
+        }
+        else if($arr["type"]=="rect")
+        {
+            draw_rect($arr,$pdf);
+            echo "Hello";
         }
     }
 }

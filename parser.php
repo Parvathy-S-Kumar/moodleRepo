@@ -26,71 +26,28 @@ function parser_path($arr)
         array_push($temp,normalize($arr["path"][$i][4]));
         array_push($list,$temp);
     }
+    array_push($list,$arr["stroke"]);
    print_r($list);
    return $list;
-
-    // $flag = 0;
-    // $color = "";
-    // $endpoint = 0;
-
-    // while(!feof($myfile)) {
-    //     $line = fgets($myfile);
-    //     // echo $line;
-    //     if ($endpoint >= 1) {
-    //         $num = string_to_int($line, 0);
-    //         array_push($temp, $num);
-    //         if ($endpoint == 2) { 
-    //             array_push($list, $temp);
-    //             $temp = array();
-    //             $endpoint = -1;
-    //             if ($flag == -1)
-    //                 break;
-    //         }
-    //         $endpoint++;
-    //     }
-
-    //     if (strpos($line, "\"path\": [") !== false)
-    //         $flag = 1;
-    //     else if (strpos($line, "\"M\",") !== false)
-    //         $endpoint++;
-    //     else if (strpos($line, "\"L\",") !== false) {
-    //         $endpoint++;
-    //         $flag = -1;
-    //     }
-    //     else if (strpos($line, "\"stroke\":") !== false) {
-    //         $line = trim($line, ' ');
-    //         $color = substr($line, 11, -3);
-    //     }
-
-    //     if ($flag >= 9 && $flag <= 12) {
-    //         $num = string_to_int($line, 0);
-    //         $flag++;
-    //         array_push($temp, $num);
-    //         if (sizeof($temp) == 2) {
-    //             array_push($list, $temp);
-    //             $temp = array();
-    //         }
-    //     }
-    //     else if ($flag == 14)
-    //         $flag = 8;
-    //     else if ($flag > 0)
-    //         $flag++;
-    // } 
-    
-    // array_push($list, $color);
-    // return $list;
 }
 
 function parser_text($arr)
 {
     $list=array();
-    array_push($list,normalize($arr["left"]));
-    array_push($list,normalize($arr["top"]));
-    array_push($list,normalize($arr["width"]));
-    array_push($list,normalize($arr["height"]));
-    array_push($list,$arr["text"]);
+    array_push($list,normalize($arr["left"]),normalize($arr["top"]),normalize($arr["width"]),normalize($arr["height"]));
+    array_push($list,$arr["text"],$arr["fill"]);
+    return $list;
+}
+
+function parser_rectangle($arr)
+{
+    $list=array();
+    $width=(normalize($arr["width"]))*($arr["scaleX"]);
+    $height=(normalize($arr["height"]))*($arr["scaleY"]);
+    array_push($list,normalize($arr["left"]),normalize($arr["top"]),$width,$height);
     array_push($list,$arr["fill"]);
     return $list;
+
 }
 
 function process_color($str) {
@@ -107,11 +64,20 @@ function process_color($str) {
         else if($str == "yellow")
         $val = [255, 255, 0];
     else {
-        $str = substr($str, 4, -1);
-        if ($str[0] == '(')
-            $str = substr($str, 1);
-        $val = explode(",", $str); 
+        $val =array();
+        list($r, $g, $b) = sscanf($str, "#%02x%02x%02x");
+        $val=[$r, $g, $b];
+        // print_r($val);
+        
+        
+    if (preg_match('/rgb/', $str)) 
+        {
+            $str = substr($str, 5,-1);
+            print_r($str);
+            $val = explode(",", $str); 
+        }
     }
+    // print_r($val);
     return $val;
 }
 ?>
