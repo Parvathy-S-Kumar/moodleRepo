@@ -135,6 +135,11 @@ if($doesExists === true)
     $storedfile->delete();
 }
 // finally save the file (creating a new file)
-$fs->create_file_from_pathname($fileinfo, $temppath);ile_from_pathname($fileinfo, $temppath);
+$fs->create_file_from_pathname($fileinfo, $temppath);
+
+// $del_file="values.txt"
+shell_exec("rm -rf values.txt");
+shell_exec("rm -rf dummy.pdf");
+shell_exec("rm -rf outputmoodle.pdf");
 ?>
 

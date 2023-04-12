@@ -120,12 +120,15 @@ if($doesExists === true)   // if exists then update $fileurl to the url of this 
     // get the mime-type of the original file
     $mime = mime_content_type($original_file->get_filename());
     $mime = (explode("/", $mime))[0];
+
     
     // convert that file into PDF, based on mime type (NOTE: this will be created in the cwd)
     if($mime === "image")
-        $command = "convert " . $original_file->get_filename() . " temp2.pdf";
+        $command = "convert " . $original_file->get_filename() . " dummy.pdf";
     else
-        $command = "convert TEXT:" . $original_file->get_filename() . " temp2.pdf";
+    {
+        $command = "convert TEXT:" . $original_file->get_filename() . " dummy.pdf";
+    }
 
     shell_exec($command);
 
@@ -134,7 +137,7 @@ if($doesExists === true)   // if exists then update $fileurl to the url of this 
     shell_exec($command);
 
     // create a PDF file in moodle database from the above created PDF file
-    $temppath = "./temp2.pdf";
+    $temppath = "./dummy.pdf";
     $fileinfo = array(
         'contextid' => $contextid,
         'component' => $component,

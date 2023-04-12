@@ -234,7 +234,7 @@ function download(filename, text) {
 	  xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	  xmlhttp.onreadystatechange = function() {
 
-		if (this.readyState == 4 && this.status == 404) {
+		if (this.readyState == 4 && this.status ==200 ) {
 			// alert("file has been saved");
 			console.log(this.responseText);
 		}
